@@ -1,0 +1,28 @@
+--Rodar para realizar a migração
+
+DO
+$$
+DECLARE
+  tname record;
+BEGIN
+  FOR tname IN select t.table_schema, t.table_name
+               from information_schema.tables t
+               where table_schema in (select distinct(table_schema) from information_schema.tables where 
+               table_schema <> 'pg_catalog' and 
+               table_schema <> 'information_schema')
+               and
+               t.table_type = 'BASE TABLE' and
+               t.table_name <> 'agendamentos_desistencias' and
+               t.table_name <> 'itens_requisicoes_entrada_estoque_entradas_lotes' 
+  LOOP
+    execute format('ALTER TABLE %I.%I SET WITHOUT OIDS', tname.table_schema, tname.table_name);
+  END LOOP;
+    ALTER TABLE sigh.agendamentos_desistencias SET WITHOUT OIDS;
+    ALTER TABLE sigh.itens_requisicoes_entrada_estoque_entradas_lotes SET WITHOUT OIDS;
+	
+    DROP CAST (aclitem[] AS text);
+
+    CREATE CAST (aclitem[] AS text)
+	  WITH FUNCTION text(aclitem[]);
+END;
+$$   
